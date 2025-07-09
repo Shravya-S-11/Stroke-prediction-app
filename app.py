@@ -19,10 +19,37 @@ scaler = joblib.load("scaler.pkl")
 # ------------------------ Sidebar ------------------------
 with st.sidebar:
     st.image("https://cdn-icons-png.flaticon.com/512/4727/4727482.png", width=100)
-    st.markdown("## About")
-    st.write("This app predicts the risk of stroke based on patient information.")
-    st.write("Developed by [Your Name]")
-    st.write("📧 contact@example.com")
+    st.markdown("## ℹ️ About Stroke")
+
+    st.markdown("""
+Stroke is a medical emergency that occurs when blood flow to the brain is interrupted or reduced.
+
+**Types of Stroke:**
+- 🧠 *Ischemic*: Caused by blocked arteries.
+- 🩸 *Hemorrhagic*: Caused by leaking or bursting blood vessels.
+
+**Common Symptoms:**
+- Sudden numbness or weakness (especially one side)
+- Trouble speaking or understanding
+- Vision problems
+- Dizziness or loss of balance
+
+**Risk Factors:**
+- High blood pressure
+- Heart disease
+- Diabetes
+- Smoking
+- Obesity
+
+**Prevention Tips:**
+- Eat healthy and exercise
+- Monitor blood pressure and sugar
+- Avoid tobacco and alcohol
+- Regular check-ups
+    """)
+
+   
+
 
 # ------------------------ Header ------------------------
 st.markdown("<h1 style='text-align: center; color: white;'>🧠 Stroke Prediction App</h1>", unsafe_allow_html=True)
