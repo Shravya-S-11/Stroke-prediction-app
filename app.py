@@ -4,6 +4,7 @@ import numpy as np
 import joblib
 from fpdf import FPDF
 import base64
+import os
 
 st.set_page_config(page_title="Stroke Prediction App", layout="centered")
 
@@ -55,37 +56,44 @@ if st.button("Predict Stroke Risk"):
             result_text = "Low Risk of Stroke — No immediate concern."
             st.success(result_text + "\n\nStroke Prediction: No")
 
-        # ----------------- PDF Generation -----------------
+        # ---------------- PDF Generation ----------------
         pdf = FPDF()
         pdf.add_page()
-        pdf.set_font("Arial", 'B', 14)
-        pdf.cell(0, 10, "Stroke Prediction Report", ln=True, align='C')
-        pdf.set_font("Arial", size=12)
-        pdf.ln(10)
 
-        def add_row(label, value):
-            pdf.cell(70, 10, label, border=1)
-            pdf.cell(120, 10, str(value), border=1)
-            pdf.ln()
+        # Load Unicode font
+        font_path = "DejaVuSans.ttf"
+        if not os.path.isfile(font_path):
+            st.error("Font file 'DejaVuSans.ttf' not found in project directory. Please upload it.")
+        else:
+            pdf.add_font("DejaVu", "", font_path, uni=True)
+            pdf.set_font("DejaVu", '', 14)
+            pdf.cell(0, 10, "Stroke Prediction Report", ln=True, align='C')
+            pdf.set_font("DejaVu", '', 12)
+            pdf.ln(10)
 
-        # Table content
-        add_row("Patient Name", name)
-        add_row("Age", age)
-        add_row("Heart Disease", "Yes" if heart_disease_val else "No")
-        add_row("Hypertension", "Yes" if hypertension_val else "No")
-        add_row("Avg Glucose Level", avg_glucose_level)
-        add_row("BMI", bmi)
-        add_row("Smoking Status", smoking_status)
-        add_row("Stroke Probability", f"{probability*100:.2f}%")
-        add_row("Prediction", "Yes" if prediction else "No")
+            def add_row(label, value):
+                pdf.cell(70, 10, str(label), border=1)
+                pdf.cell(120, 10, str(value), border=1)
+                pdf.ln()
 
-        pdf.multi_cell(0, 10, f"\nSummary: {result_text}", border=1)
+            # Table content
+            add_row("Patient Name", name)
+            add_row("Age", age)
+            add_row("Heart Disease", "Yes" if heart_disease_val else "No")
+            add_row("Hypertension", "Yes" if hypertension_val else "No")
+            add_row("Avg Glucose Level", avg_glucose_level)
+            add_row("BMI", bmi)
+            add_row("Smoking Status", smoking_status)
+            add_row("Stroke Probability", f"{probability*100:.2f}%")
+            add_row("Prediction", "Yes" if prediction else "No")
 
-        # Save & provide download
-        pdf_output_path = "/tmp/stroke_report.pdf"
-        pdf.output(pdf_output_path)
+            pdf.multi_cell(0, 10, f"\nSummary: {result_text}", border=1)
 
-        with open(pdf_output_path, "rb") as f:
-            b64 = base64.b64encode(f.read()).decode()
-            href = f'<a href="data:application/octet-stream;base64,{b64}" download="stroke_report.pdf">📄 Download PDF Report</a>'
-            st.markdown(href, unsafe_allow_html=True)
+            # Save & provide download
+            pdf_output_path = "/tmp/stroke_report.pdf"
+            pdf.output(pdf_output_path)
+
+            with open(pdf_output_path, "rb") as f:
+                b64 = base64.b64encode(f.read()).decode()
+                href = f'<a href="data:application/octet-stream;base64,{b64}" download="stroke_report.pdf">📄 Download PDF Report</a>'
+                st.markdown(href, unsafe_allow_html=True)
