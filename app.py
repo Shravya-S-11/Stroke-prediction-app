@@ -107,7 +107,8 @@ if submit:
         add_row("Stroke Probability", f"{probability * 100:.2f}%")
         add_row("Prediction", "Yes" if prediction == 1 else "No")
 
-        pdf.multi_cell(0, 10, f"\nSummary: {result_text}", border=1)
+        summary_text = result_text.encode("ascii", "ignore").decode()  
+        pdf.multi_cell(0, 10, f"\nSummary: {summary_text}", border=1)
         pdf.ln(5)
         pdf.set_font("Arial", 'B', 12)
         pdf.cell(0, 10, "Basic Health & Diet Tips", ln=True)
