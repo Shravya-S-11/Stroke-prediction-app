@@ -4,17 +4,16 @@ import numpy as np
 import joblib
 from fpdf import FPDF
 import base64
-import os
 
 st.set_page_config(page_title="Stroke Prediction App", layout="centered")
 
 model = joblib.load("stroke_model.pkl")
 scaler = joblib.load("scaler.pkl")
 
-st.title("🧠 Stroke Prediction App")
+st.title("Stroke Prediction App")
 st.write("Enter the patient details below to assess stroke risk:")
 
-# Ask for name
+# Input fields
 name = st.text_input("Patient Name")
 age = st.slider("Age", min_value=0, max_value=120, value=30)
 
@@ -25,6 +24,7 @@ hypertension = st.selectbox("Do you have hypertension?", ["No", "Yes"])
 hypertension_val = 1 if hypertension == "Yes" else 0
 
 avg_glucose_level = st.number_input("Average Glucose Level (mg/dL)", min_value=0.0, value=100.0)
+
 bmi = st.number_input("BMI (Body Mass Index)", min_value=10.0, max_value=60.0, value=22.0)
 
 smoking_status = st.selectbox("Smoking Status", ["formerly smoked", "smokes", "never smoked"])
@@ -32,68 +32,96 @@ smoking_map = {"formerly smoked": 0, "smokes": 2, "never smoked": 1}
 smoking_val = smoking_map[smoking_status]
 
 if st.button("Predict Stroke Risk"):
-    if name.strip() == "":
-        st.warning("⚠ Please enter the patient's name before proceeding.")
+    # Prepare input
+    input_data = pd.DataFrame([[age, heart_disease_val, avg_glucose_level, hypertension_val, bmi, smoking_val]],
+                              columns=['age', 'heart_disease', 'avg_glucose_level', 'hypertension', 'bmi', 'smoking_status'])
+    input_scaled = scaler.transform(input_data)
+
+    # Model prediction
+    threshold = 0.25
+    probability = model.predict_proba(input_scaled)[0][1]
+    prediction = int(probability >= threshold)
+
+    st.markdown("---")
+    st.markdown(f"### Probability of Stroke: {probability*100:.2f}%")
+
+    # Text to include in PDF
+    if 40 <= probability * 100 < 60:
+        result_text = "Borderline case - risk indicators present."
+        st.warning(result_text + f"\n\nStroke Prediction: {'Yes' if prediction == 1 else 'No'}")
+    elif prediction == 1:
+        result_text = "High Risk of Stroke - Please consult a doctor."
+        st.error(result_text + f"\n\nStroke Prediction: Yes")
     else:
-        input_data = pd.DataFrame([[age, heart_disease_val, avg_glucose_level, hypertension_val, bmi, smoking_val]],
-                                  columns=['age', 'heart_disease', 'avg_glucose_level', 'hypertension', 'bmi', 'smoking_status'])
-        input_scaled = scaler.transform(input_data)
+        result_text = "Low Risk of Stroke - No immediate concern."
+        st.success(result_text + f"\n\nStroke Prediction: No")
 
-        threshold = 0.25
-        probability = model.predict_proba(input_scaled)[0][1]
-        prediction = int(probability >= threshold)
+    # Basic diet advice
+    diet = (
+        "- Eat more fruits, vegetables, and whole grains.\n"
+        "- Limit saturated fats and sodium.\n"
+        "- Drink enough water daily.\n"
+        "- Avoid smoking and alcohol.\n"
+        "- Include light physical activity like walking."
+    )
 
-        st.markdown("---")
-        st.markdown(f"### Probability of Stroke: `{probability*100:.2f}%`")
+    # Create PDF in table format
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", 'B', 14)
+    pdf.cell(0, 10, "Report", ln=True, align='C')
+    pdf.set_font("Arial", size=12)
+    pdf.ln(10)
 
-        if 40 <= probability * 100 < 60:
-            result_text = "Borderline case — risk indicators present."
-            st.warning(result_text + f"\n\nStroke Prediction: {'Yes' if prediction == 1 else 'No'}")
-        elif prediction == 1:
-            result_text = "⚠ High Risk of Stroke — Please consult a doctor."
-            st.error(result_text + "\n\nStroke Prediction: Yes")
-        else:
-            result_text = "Low Risk of Stroke — No immediate concern."
-            st.success(result_text + "\n\nStroke Prediction: No")
+    # Table header
+    pdf.set_fill_color(200, 220, 255)
+    pdf.cell(70, 10, "Field", border=1, fill=True)
+    pdf.cell(120, 10, "Value", border=1, fill=True)
+    pdf.ln()
 
-        # ---------------- PDF Generation ----------------
-        pdf = FPDF()
-        pdf.add_page()
+    # Table content
+    pdf.cell(70, 10, "Patient Name", border=1)
+    pdf.cell(120, 10, name, border=1)
+    pdf.ln()
+    pdf.cell(70, 10, "Age", border=1)
+    pdf.cell(120, 10, str(age), border=1)
+    pdf.ln()
+    pdf.cell(70, 10, "Heart Disease", border=1)
+    pdf.cell(120, 10, heart_disease, border=1)
+    pdf.ln()
+    pdf.cell(70, 10, "Hypertension", border=1)
+    pdf.cell(120, 10, hypertension, border=1)
+    pdf.ln()
+    pdf.cell(70, 10, "Avg Glucose Level", border=1)
+    pdf.cell(120, 10, f"{avg_glucose_level}", border=1)
+    pdf.ln()
+    pdf.cell(70, 10, "BMI", border=1)
+    pdf.cell(120, 10, f"{bmi}", border=1)
+    pdf.ln()
+    pdf.cell(70, 10, "Smoking Status", border=1)
+    pdf.cell(120, 10, smoking_status, border=1)
+    pdf.ln()
+    pdf.cell(70, 10, "Stroke Probability", border=1)
+    pdf.cell(120, 10, f"{probability*100:.2f}%", border=1)
+    pdf.ln()
+    pdf.cell(70, 10, "Prediction", border=1)
+    pdf.cell(120, 10, "Yes" if prediction == 1 else "No", border=1)
+    pdf.ln()
+    pdf.cell(70, 10, "Result Summary", border=1)
+    pdf.multi_cell(120, 10, result_text, border=1)
 
-        # Load Unicode font
-        font_path = "DejaVuSans.ttf"
-        if not os.path.isfile(font_path):
-            st.error("Font file 'DejaVuSans.ttf' not found in project directory. Please upload it.")
-        else:
-            pdf.add_font("DejaVu", "", font_path, uni=True)
-            pdf.set_font("DejaVu", '', 14)
-            pdf.cell(0, 10, "Stroke Prediction Report", ln=True, align='C')
-            pdf.set_font("DejaVu", '', 12)
-            pdf.ln(10)
+    pdf.ln(10)
+    pdf.set_font("Arial", 'B', 12)
+    pdf.cell(0, 10, "Basic Health & Diet Tips", ln=True)
+    pdf.set_font("Arial", size=11)
+    for line in diet.strip().split('\n'):
+        pdf.cell(0, 8, line.strip(), ln=True)
 
-            def add_row(label, value):
-                pdf.cell(70, 10, str(label), border=1)
-                pdf.cell(120, 10, str(value), border=1)
-                pdf.ln()
+    # Save and provide download link
+    pdf_output_path = "/tmp/stroke_report.pdf"
+    pdf.output(pdf_output_path)
 
-            # Table content
-            add_row("Patient Name", name)
-            add_row("Age", age)
-            add_row("Heart Disease", "Yes" if heart_disease_val else "No")
-            add_row("Hypertension", "Yes" if hypertension_val else "No")
-            add_row("Avg Glucose Level", avg_glucose_level)
-            add_row("BMI", bmi)
-            add_row("Smoking Status", smoking_status)
-            add_row("Stroke Probability", f"{probability*100:.2f}%")
-            add_row("Prediction", "Yes" if prediction else "No")
-
-            pdf.multi_cell(0, 10, f"\nSummary: {result_text}", border=1)
-
-            # Save & provide download
-            pdf_output_path = "/tmp/stroke_report.pdf"
-            pdf.output(pdf_output_path)
-
-            with open(pdf_output_path, "rb") as f:
-                b64 = base64.b64encode(f.read()).decode()
-                href = f'<a href="data:application/octet-stream;base64,{b64}" download="stroke_report.pdf">📄 Download PDF Report</a>'
-                st.markdown(href, unsafe_allow_html=True)
+    with open(pdf_output_path, "rb") as f:
+        b64 = base64.b64encode(f.read()).decode()
+        href = f'<a href="data:application/octet-stream;base64,{b64}" download="stroke_report.pdf">📄 Download PDF Report</a>'
+        st.markdown(href, unsafe_allow_html=True)
