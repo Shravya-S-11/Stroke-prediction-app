@@ -48,7 +48,9 @@ Stroke is a medical emergency that occurs when blood flow to the brain is interr
 - Regular check-ups
     """)
 
-   
+    st.markdown("---")
+    st.caption("Developed by [Your Name] • 📧 contact@example.com")
+
 
 
 # ------------------------ Header ------------------------
