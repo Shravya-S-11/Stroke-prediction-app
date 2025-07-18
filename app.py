@@ -120,7 +120,7 @@ pdf.add_page()
 # Header
 pdf.set_font("Arial", 'B', 16)
 pdf.set_text_color(40, 40, 128)
-pdf.cell(0, 10, "🧠 Stroke Prediction Report", ln=True, align='C')
+pdf.cell(0, 10, "Stroke Prediction Report", ln=True, align='C')
 pdf.set_text_color(0, 0, 0)
 pdf.set_font("Arial", '', 11)
 pdf.cell(0, 10, f"Date: {datetime.now().strftime('%d-%m-%Y %H:%M:%S')}", ln=True)
