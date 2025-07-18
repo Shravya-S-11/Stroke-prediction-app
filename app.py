@@ -18,8 +18,6 @@ scaler = joblib.load("scaler.pkl")
 
 # ------------------------ Sidebar ------------------------
 with st.sidebar:
-    st.image("https://images.unsplash.com/photo-1581090700227-1e8a1a032f56", width=150)
-
     st.markdown("## ℹ️ About Stroke")
 
     st.markdown("""
