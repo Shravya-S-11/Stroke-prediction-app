@@ -4,6 +4,8 @@ import numpy as np
 import joblib
 from fpdf import FPDF
 import base64
+import tempfile
+from datetime import datetime
 
 # ------------------------ Page Setup ------------------------
 st.set_page_config(
@@ -19,7 +21,6 @@ scaler = joblib.load("scaler.pkl")
 # ------------------------ Sidebar ------------------------
 with st.sidebar:
     st.markdown("## ℹ️ About Stroke")
-
     st.markdown("""
 Stroke is a medical emergency that occurs when blood flow to the brain is interrupted or reduced.
 
@@ -46,8 +47,6 @@ Stroke is a medical emergency that occurs when blood flow to the brain is interr
 - Avoid tobacco and alcohol
 - Regular check-ups
     """)
-
-
 
 # ------------------------ Header ------------------------
 st.markdown("<h1 style='text-align: center; color: white;'>🧠 Stroke Prediction App</h1>", unsafe_allow_html=True)
@@ -100,77 +99,73 @@ if submit:
             result_text = "Low Risk of Stroke — No immediate concern."
             st.success(result_text)
 
-       # ------------------------ PDF Report Generation ------------------------
+        # ------------------------ PDF Report Generation ------------------------
+        diet = (
+            "- Eat more fruits, vegetables, and whole grains.\n"
+            "- Limit saturated fats and sodium.\n"
+            "- Drink enough water daily.\n"
+            "- Avoid smoking and alcohol.\n"
+            "- Include light physical activity like walking."
+        )
 
-from datetime import datetime
+        pdf = FPDF()
+        pdf.set_auto_page_break(auto=True, margin=15)
+        pdf.add_page()
 
-# Tips block
-diet = (
-    "- Eat more fruits, vegetables, and whole grains.\n"
-    "- Limit saturated fats and sodium.\n"
-    "- Drink enough water daily.\n"
-    "- Avoid smoking and alcohol.\n"
-    "- Include light physical activity like walking."
-)
+        # Header
+        pdf.set_font("Arial", 'B', 16)
+        pdf.set_text_color(40, 40, 128)
+        pdf.cell(0, 10, "Stroke Prediction Report", ln=True, align='C')
+        pdf.set_text_color(0, 0, 0)
+        pdf.set_font("Arial", '', 11)
+        pdf.cell(0, 10, f"Date: {datetime.now().strftime('%d-%m-%Y %H:%M:%S')}", ln=True)
+        pdf.ln(5)
 
-pdf = FPDF()
-pdf.set_auto_page_break(auto=True, margin=15)
-pdf.add_page()
+        # Table row formatter
+        def add_row(label, value):
+            pdf.set_font("Arial", 'B', 12)
+            pdf.cell(70, 10, label, border=1)
+            pdf.set_font("Arial", '', 12)
+            pdf.cell(120, 10, str(value), border=1)
+            pdf.ln()
 
-# Header
-pdf.set_font("Arial", 'B', 16)
-pdf.set_text_color(40, 40, 128)
-pdf.cell(0, 10, "Stroke Prediction Report", ln=True, align='C')
-pdf.set_text_color(0, 0, 0)
-pdf.set_font("Arial", '', 11)
-pdf.cell(0, 10, f"Date: {datetime.now().strftime('%d-%m-%Y %H:%M:%S')}", ln=True)
-pdf.ln(5)
+        # Patient Info Table
+        add_row("Patient Name", name)
+        add_row("Age", age)
+        add_row("Heart Disease", heart_disease)
+        add_row("Hypertension", hypertension)
+        add_row("Avg Glucose Level", avg_glucose_level)
+        add_row("BMI", bmi)
+        add_row("Smoking Status", smoking_status)
+        add_row("Stroke Probability", f"{probability * 100:.2f}%")
+        add_row("Prediction", "Yes" if prediction == 1 else "No")
 
-# Table row formatter
-def add_row(label, value):
-    pdf.set_font("Arial", 'B', 12)
-    pdf.cell(70, 10, label, border=1)
-    pdf.set_font("Arial", '', 12)
-    pdf.cell(120, 10, str(value), border=1)
-    pdf.ln()
+        # Summary
+        summary_text = result_text.encode("ascii", "ignore").decode()
+        pdf.ln(5)
+        pdf.set_fill_color(240, 248, 255)  # light blue
+        pdf.set_font("Arial", 'B', 12)
+        pdf.cell(0, 10, "Summary", ln=True, fill=True)
+        pdf.set_font("Arial", '', 11)
+        pdf.multi_cell(0, 10, summary_text, border=1)
+        pdf.ln(5)
 
-# Patient Info Table
-add_row("Patient Name", name)
-add_row("Age", age)
-add_row("Heart Disease", heart_disease)
-add_row("Hypertension", hypertension)
-add_row("Avg Glucose Level", avg_glucose_level)
-add_row("BMI", bmi)
-add_row("Smoking Status", smoking_status)
-add_row("Stroke Probability", f"{probability * 100:.2f}%")
-add_row("Prediction", "Yes" if prediction == 1 else "No")
+        # Tips
+        pdf.set_font("Arial", 'B', 12)
+        pdf.cell(0, 10, "🩺 Basic Health & Diet Tips", ln=True)
+        pdf.set_draw_color(180, 180, 180)
+        pdf.set_line_width(0.5)
+        pdf.line(10, pdf.get_y(), 200, pdf.get_y())
+        pdf.set_font("Arial", '', 11)
+        pdf.ln(3)
 
-# Summary
-summary_text = result_text.encode("ascii", "ignore").decode()
-pdf.ln(5)
-pdf.set_fill_color(240, 248, 255)  # light blue
-pdf.set_font("Arial", 'B', 12)
-pdf.cell(0, 10, "Summary", ln=True, fill=True)
-pdf.set_font("Arial", '', 11)
-pdf.multi_cell(0, 10, summary_text, border=1)
-pdf.ln(5)
+        for line in diet.strip().split('\n'):
+            pdf.cell(0, 8, f"• {line.strip()}", ln=True)
 
-# Tips
-pdf.set_font("Arial", 'B', 12)
-pdf.cell(0, 10, "🩺 Basic Health & Diet Tips", ln=True)
-pdf.set_draw_color(180, 180, 180)
-pdf.set_line_width(0.5)
-pdf.line(10, pdf.get_y(), 200, pdf.get_y())
-pdf.set_font("Arial", '', 11)
-pdf.ln(3)
-
-for line in diet.strip().split('\n'):
-    pdf.cell(0, 8, f"• {line.strip()}", ln=True)
-
-# Save PDF to temporary file
-with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
-    pdf.output(tmp.name)
-    with open(tmp.name, "rb") as f:
-        b64 = base64.b64encode(f.read()).decode()
-        href = f'<a href="data:application/octet-stream;base64,{b64}" download="stroke_report.pdf">📄 Download PDF Report</a>'
-        st.markdown(href, unsafe_allow_html=True)
+        # Save PDF to temp file and create download link
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+            pdf.output(tmp.name)
+            with open(tmp.name, "rb") as f:
+                b64 = base64.b64encode(f.read()).decode()
+                href = f'<a href="data:application/octet-stream;base64,{b64}" download="stroke_report.pdf">📄 Download PDF Report</a>'
+                st.markdown(href, unsafe_allow_html=True)
