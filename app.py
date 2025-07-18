@@ -152,7 +152,7 @@ if submit:
 
         # Tips
         pdf.set_font("Arial", 'B', 12)
-        pdf.cell(0, 10, "🩺 Basic Health & Diet Tips", ln=True)
+        pdf.cell(0, 10, " Basic Health & Diet Tips", ln=True)
         pdf.set_draw_color(180, 180, 180)
         pdf.set_line_width(0.5)
         pdf.line(10, pdf.get_y(), 200, pdf.get_y())
