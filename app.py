@@ -18,7 +18,7 @@ scaler = joblib.load("scaler.pkl")
 
 # ------------------------ Sidebar ------------------------
 with st.sidebar:
-    st.image("https://cdn-icons-png.flaticon.com/512/4727/4727482.png", width=100)
+    st.image("C:\Users\User\Downloads\interactivebrain.jpg", width=100)
     st.markdown("## ℹ️ About Stroke")
 
     st.markdown("""
@@ -58,17 +58,17 @@ st.write("Please fill in the patient details below:")
 # ------------------------ Input Form ------------------------
 with st.form("stroke_form"):
     name = st.text_input("👤 Patient Name")
-    age = st.slider("🎂 Age", min_value=0, max_value=120, value=30)
-    heart_disease = st.selectbox("❤️ Do you have heart disease?", ["No", "Yes"])
+    age = st.slider(" Age", min_value=0, max_value=120, value=30)
+    heart_disease = st.selectbox("Do you have heart disease?", ["No", "Yes"])
     heart_disease_val = 1 if heart_disease == "Yes" else 0
 
-    hypertension = st.selectbox("💉 Do you have hypertension?", ["No", "Yes"])
+    hypertension = st.selectbox("Do you have hypertension?", ["No", "Yes"])
     hypertension_val = 1 if hypertension == "Yes" else 0
 
-    avg_glucose_level = st.number_input("🧪 Average Glucose Level (mg/dL)", min_value=0.0, value=100.0)
-    bmi = st.number_input("📏 BMI (Body Mass Index)", min_value=10.0, max_value=60.0, value=22.0)
+    avg_glucose_level = st.number_input("Average Glucose Level (mg/dL)", min_value=0.0, value=100.0)
+    bmi = st.number_input("BMI (Body Mass Index)", min_value=10.0, max_value=60.0, value=22.0)
 
-    smoking_status = st.selectbox("🚬 Smoking Status", ["formerly smoked", "smokes", "never smoked"])
+    smoking_status = st.selectbox("Smoking Status", ["formerly smoked", "smokes", "never smoked"])
     smoking_map = {"formerly smoked": 0, "smokes": 2, "never smoked": 1}
     smoking_val = smoking_map[smoking_status]
 
@@ -77,7 +77,7 @@ with st.form("stroke_form"):
 # ------------------------ Prediction ------------------------
 if submit:
     if not name.strip():
-        st.warning("⚠️ Please enter the patient's name before proceeding.")
+        st.warning("Please enter the patient's name before proceeding.")
     else:
         # Prepare input
         input_data = pd.DataFrame([[age, heart_disease_val, avg_glucose_level, hypertension_val, bmi, smoking_val]],
@@ -89,7 +89,7 @@ if submit:
         prediction = int(probability >= 0.25)
 
         st.markdown("---")
-        st.markdown(f"### 🧾 Stroke Probability: **{probability * 100:.2f}%**")
+        st.markdown(f"### Stroke Probability: **{probability * 100:.2f}%**")
 
         if 40 <= probability * 100 < 60:
             result_text = "Borderline case - risk indicators present."
@@ -98,7 +98,7 @@ if submit:
             result_text = "⚠ High Risk of Stroke — Please consult a doctor."
             st.error(result_text)
         else:
-            result_text = "✅ Low Risk of Stroke — No immediate concern."
+            result_text = "Low Risk of Stroke — No immediate concern."
             st.success(result_text)
 
         # ------------------------ PDF Report ------------------------
