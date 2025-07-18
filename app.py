@@ -25,8 +25,8 @@ with st.sidebar:
 Stroke is a medical emergency that occurs when blood flow to the brain is interrupted or reduced.
 
 **Types of Stroke:**
-- 🧠 *Ischemic*: Caused by blocked arteries.
-- 🩸 *Hemorrhagic*: Caused by leaking or bursting blood vessels.
+- *Ischemic*: Caused by blocked arteries.
+- *Hemorrhagic*: Caused by leaking or bursting blood vessels.
 
 **Common Symptoms:**
 - Sudden numbness or weakness (especially one side)
@@ -49,13 +49,13 @@ Stroke is a medical emergency that occurs when blood flow to the brain is interr
     """)
 
 # ------------------------ Header ------------------------
-st.markdown("<h1 style='text-align: center; color: white;'>🧠 Stroke Prediction App</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center; color: white;'>Stroke Prediction App</h1>", unsafe_allow_html=True)
 st.markdown("<hr style='border:1px solid gray'>", unsafe_allow_html=True)
 st.write("Please fill in the patient details below:")
 
 # ------------------------ Input Form ------------------------
 with st.form("stroke_form"):
-    name = st.text_input("👤 Patient Name")
+    name = st.text_input("Patient Name")
     age = st.slider(" Age", min_value=0, max_value=120, value=30)
     heart_disease = st.selectbox("Do you have heart disease?", ["No", "Yes"])
     heart_disease_val = 1 if heart_disease == "Yes" else 0
@@ -70,7 +70,7 @@ with st.form("stroke_form"):
     smoking_map = {"formerly smoked": 0, "smokes": 2, "never smoked": 1}
     smoking_val = smoking_map[smoking_status]
 
-    submit = st.form_submit_button("🔍 Predict Stroke Risk")
+    submit = st.form_submit_button("Predict Stroke Risk")
 
 # ------------------------ Prediction ------------------------
 if submit:
