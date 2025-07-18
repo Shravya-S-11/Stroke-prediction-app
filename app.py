@@ -4,8 +4,6 @@ import numpy as np
 import joblib
 from fpdf import FPDF
 import base64
-import tempfile
-from datetime import datetime
 
 # ------------------------ Page Setup ------------------------
 st.set_page_config(
@@ -20,42 +18,45 @@ scaler = joblib.load("scaler.pkl")
 
 # ------------------------ Sidebar ------------------------
 with st.sidebar:
-    st.markdown("## ℹ️ About Stroke")
+    st.markdown("## ℹ About Stroke")
+
     st.markdown("""
 Stroke is a medical emergency that occurs when blood flow to the brain is interrupted or reduced.
 
-**Types of Stroke:**
-- *Ischemic*: Caused by blocked arteries.
-- *Hemorrhagic*: Caused by leaking or bursting blood vessels.
+*Types of Stroke:*
+- 🧠 Ischemic: Caused by blocked arteries.
+- 🩸 Hemorrhagic: Caused by leaking or bursting blood vessels.
 
-**Common Symptoms:**
+*Common Symptoms:*
 - Sudden numbness or weakness (especially one side)
 - Trouble speaking or understanding
 - Vision problems
 - Dizziness or loss of balance
 
-**Risk Factors:**
+*Risk Factors:*
 - High blood pressure
 - Heart disease
 - Diabetes
 - Smoking
 - Obesity
 
-**Prevention Tips:**
+*Prevention Tips:*
 - Eat healthy and exercise
 - Monitor blood pressure and sugar
 - Avoid tobacco and alcohol
 - Regular check-ups
     """)
 
+
+
 # ------------------------ Header ------------------------
-st.markdown("<h1 style='text-align: center; color: white;'>Stroke Prediction App</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center; color: white;'>🧠 Stroke Prediction App</h1>", unsafe_allow_html=True)
 st.markdown("<hr style='border:1px solid gray'>", unsafe_allow_html=True)
 st.write("Please fill in the patient details below:")
 
 # ------------------------ Input Form ------------------------
 with st.form("stroke_form"):
-    name = st.text_input("Patient Name")
+    name = st.text_input("👤 Patient Name")
     age = st.slider(" Age", min_value=0, max_value=120, value=30)
     heart_disease = st.selectbox("Do you have heart disease?", ["No", "Yes"])
     heart_disease_val = 1 if heart_disease == "Yes" else 0
@@ -70,7 +71,7 @@ with st.form("stroke_form"):
     smoking_map = {"formerly smoked": 0, "smokes": 2, "never smoked": 1}
     smoking_val = smoking_map[smoking_status]
 
-    submit = st.form_submit_button("Predict Stroke Risk")
+    submit = st.form_submit_button("🔍 Predict Stroke Risk")
 
 # ------------------------ Prediction ------------------------
 if submit:
@@ -87,7 +88,7 @@ if submit:
         prediction = int(probability >= 0.25)
 
         st.markdown("---")
-        st.markdown(f"### Stroke Probability: **{probability * 100:.2f}%**")
+        st.markdown(f"### Stroke Probability: *{probability * 100:.2f}%*")
 
         if 40 <= probability * 100 < 60:
             result_text = "Borderline case - risk indicators present."
@@ -99,7 +100,7 @@ if submit:
             result_text = "Low Risk of Stroke — No immediate concern."
             st.success(result_text)
 
-        # ------------------------ PDF Report Generation ------------------------
+        # ------------------------ PDF Report ------------------------
         diet = (
             "- Eat more fruits, vegetables, and whole grains.\n"
             "- Limit saturated fats and sodium.\n"
@@ -109,27 +110,18 @@ if submit:
         )
 
         pdf = FPDF()
-        pdf.set_auto_page_break(auto=True, margin=15)
         pdf.add_page()
-
-        # Header
-        pdf.set_font("Arial", 'B', 16)
-        pdf.set_text_color(40, 40, 128)
+        pdf.set_font("Arial", 'B', 14)
         pdf.cell(0, 10, "Stroke Prediction Report", ln=True, align='C')
-        pdf.set_text_color(0, 0, 0)
-        pdf.set_font("Arial", '', 11)
-        pdf.cell(0, 10, f"Date: {datetime.now().strftime('%d-%m-%Y %H:%M:%S')}", ln=True)
-        pdf.ln(5)
+        pdf.set_font("Arial", size=12)
+        pdf.ln(10)
 
-        # Table row formatter
+        # Table
         def add_row(label, value):
-            pdf.set_font("Arial", 'B', 12)
             pdf.cell(70, 10, label, border=1)
-            pdf.set_font("Arial", '', 12)
             pdf.cell(120, 10, str(value), border=1)
             pdf.ln()
 
-        # Patient Info Table
         add_row("Patient Name", name)
         add_row("Age", age)
         add_row("Heart Disease", heart_disease)
@@ -140,32 +132,20 @@ if submit:
         add_row("Stroke Probability", f"{probability * 100:.2f}%")
         add_row("Prediction", "Yes" if prediction == 1 else "No")
 
-        # Summary
-        summary_text = result_text.encode("ascii", "ignore").decode()
+        summary_text = result_text.encode("ascii", "ignore").decode()  
+        pdf.multi_cell(0, 10, f"\nSummary: {summary_text}", border=1)
         pdf.ln(5)
-        pdf.set_fill_color(240, 248, 255)  # light blue
         pdf.set_font("Arial", 'B', 12)
-        pdf.cell(0, 10, "Summary", ln=True, fill=True)
-        pdf.set_font("Arial", '', 11)
-        pdf.multi_cell(0, 10, summary_text, border=1)
-        pdf.ln(5)
+        pdf.cell(0, 10, "Basic Health & Diet Tips", ln=True)
+        pdf.set_font("Arial", size=11)
+        for line in diet.split('\n'):
+            pdf.cell(0, 8, line.strip(), ln=True)
 
-        # Tips
-        pdf.set_font("Arial", 'B', 12)
-        pdf.cell(0, 10, " Basic Health & Diet Tips", ln=True)
-        pdf.set_draw_color(180, 180, 180)
-        pdf.set_line_width(0.5)
-        pdf.line(10, pdf.get_y(), 200, pdf.get_y())
-        pdf.set_font("Arial", '', 11)
-        pdf.ln(3)
+        pdf_output_path = "/tmp/stroke_report.pdf"
+        pdf.output(pdf_output_path)
 
-        for line in diet.strip().split('\n'):
-            pdf.cell(0, 8, f"- {line.strip()}", ln=True)
-
-        # Save PDF to temp file and create download link
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
-            pdf.output(tmp.name)
-            with open(tmp.name, "rb") as f:
-                b64 = base64.b64encode(f.read()).decode()
-                href = f'<a href="data:application/octet-stream;base64,{b64}" download="stroke_report.pdf">📄 Download PDF Report</a>'
-                st.markdown(href, unsafe_allow_html=True)
+        # ------------------------ Download Link ------------------------
+        with open(pdf_output_path, "rb") as f:
+            b64 = base64.b64encode(f.read()).decode()
+            href = f'<a href="data:application/octet-stream;base64,{b64}" download="stroke_report.pdf">📄 Download PDF Report</a>'
+            st.markdown(href, unsafe_allow_html=True)
