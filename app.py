@@ -160,7 +160,7 @@ if submit:
         pdf.ln(3)
 
         for line in diet.strip().split('\n'):
-            pdf.cell(0, 8, f"• {line.strip()}", ln=True)
+            pdf.cell(0, 8, f"- {line.strip()}", ln=True)
 
         # Save PDF to temp file and create download link
         with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
