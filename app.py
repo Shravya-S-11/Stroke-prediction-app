@@ -24,8 +24,8 @@ with st.sidebar:
 Stroke is a medical emergency that occurs when blood flow to the brain is interrupted or reduced.
 
 *Types of Stroke:*
-- 🧠 Ischemic: Caused by blocked arteries.
-- 🩸 Hemorrhagic: Caused by leaking or bursting blood vessels.
+-  Ischemic: Caused by blocked arteries.
+-  Hemorrhagic: Caused by leaking or bursting blood vessels.
 
 *Common Symptoms:*
 - Sudden numbness or weakness (especially one side)
