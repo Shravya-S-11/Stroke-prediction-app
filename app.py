@@ -84,11 +84,11 @@ if submit:
         input_scaled = scaler.transform(input_data)
 
         # Predict
-        #probability = model.predict_proba(input_scaled)[0][1]
-        #prediction = int(probability >= 0.25)
+        probability = model.predict_proba(input_scaled)[0][1]
+        prediction = int(probability >= 0.25)
 
-        #st.markdown("---")
-        #st.markdown(f"### Stroke Probability: *{probability * 100:.2f}%*")
+        st.markdown("---")
+        st.markdown(f"### Stroke Probability: *{probability * 100:.2f}%*")
 
         if 40 <= probability * 100 < 60:
             result_text = "Borderline case - risk indicators present."
